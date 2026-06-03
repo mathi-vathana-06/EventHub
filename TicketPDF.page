@@ -1,0 +1,172 @@
+<apex:page controller="RegistrationSuccessController" renderAs="pdf" sidebar="false" showHeader="false" applyHtmlTag="false" applyBodyTag="false" id="pdfTemplatePage">
+    <html>
+        <head>
+            <title>Official Entry Ticket Pass</title>
+            <style type="text/css">
+                @page {
+                    size: A4 portrait;
+                    margin: 20mm;
+                }
+                
+                body {
+                    font-family: 'Arial', 'Helvetica', sans-serif;
+                    color: #0f172a;
+                    background-color: #ffffff;
+                    margin: 0;
+                    padding: 0;
+                    font-size: 14px;
+                }
+                
+                .pdf-ticket-container {
+                    width: 100%;
+                    border: 2px dashed #cbd5e1;
+                    border-radius: 16px;
+                    background-color: #f8fafc;
+                    margin-top: 30px;
+                    box-sizing: border-box;
+                }
+                
+                .pdf-ticket-header-table {
+                    width: 100%;
+                    background-color: #1e1b4b;
+                    color: #ffffff;
+                    border-collapse: collapse;
+                    margin: 0;
+                }
+                
+                .pdf-ticket-header-table td {
+                    padding: 18px 25px;
+                    font-weight: 800;
+                    font-size: 13px;
+                    letter-spacing: 0.8px;
+                }
+                
+                .pdf-ticket-body-content {
+                    padding: 30px;
+                }
+                
+                .event-main-title {
+                    font-size: 26px;
+                    font-weight: 800;
+                    color: #0f172a;
+                    margin: 0 0 6px 0;
+                    letter-spacing: -0.5px;
+                }
+                
+                .event-venue-submeta {
+                    font-size: 14px;
+                    color: #64748b;
+                    font-weight: 600;
+                    margin: 0 0 8px 0;
+                }
+                
+                .event-date-timeline-block {
+                    font-size: 12.5px;
+                    color: #475569;
+                    font-weight: 700;
+                    margin-bottom: 25px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.3px;
+                }
+                
+                .details-matrix-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    border-top: 1px solid #e2e8f0;
+                }
+                
+                .details-matrix-table td {
+                    width: 50%;
+                    padding: 18px 0;
+                    vertical-align: top;
+                }
+                
+                .data-label-title {
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    margin-bottom: 5px;
+                }
+                
+                .data-value-string {
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: #0f172a;
+                }
+                
+                .status-badge-paid {
+                    color: #10b981;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                }
+                
+                .matrix-row-separator {
+                    border-bottom: 1px solid #f1f5f9;
+                }
+            </style>
+        </head>
+        <body>
+            <apex:outputPanel rendered="{!isValidRecord}">
+                <div class="pdf-ticket-container">
+                    
+                    <table class="pdf-ticket-header-table">
+                        <tr>
+                            <td style="text-align: left;">OFFICIAL ENTRY CONFIRMATION PASS</td>
+                            <td style="text-align: right;">#{!BLANKVALUE(confirmedRegistration.Ticket_Number__c, confirmedRegistration.Name)}</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="pdf-ticket-body-content">
+                        <div class="event-main-title">{!confirmedRegistration.Event__r.Name}</div>
+                        <div class="event-venue-submeta">📍 {!confirmedRegistration.Event__r.Venue__c}</div>
+                        
+                        <div class="event-date-timeline-block">
+                            📅 START:&nbsp;
+                            <apex:outputText value="{0,date,EEE, MMM dd, yyyy}">
+                                <apex:param value="{!confirmedRegistration.Event__r.Start_Date__c}"/>
+                            </apex:outputText>
+                            &nbsp;&nbsp;|&nbsp;&nbsp;
+                            🔚 END:&nbsp;
+                            <apex:outputText value="{0,date,EEE, MMM dd, yyyy}">
+                                <apex:param value="{!confirmedRegistration.Event__r.End_Date__c}"/>
+                            </apex:outputText>
+                        </div>
+                        
+                        <table class="details-matrix-table">
+                            <tr class="matrix-row-separator">
+                                <td>
+                                    <div class="data-label-title">Primary Attendee</div>
+                                    <div class="data-value-string">{!confirmedRegistration.Registrant_Name__c}</div>
+                                </td>
+                                <td>
+                                    <div class="data-label-title">Allocated Volume</div>
+                                    <div class="data-value-string">{!FLOOR(confirmedRegistration.Number_of_Seats__c)} Passes Allocated</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="data-label-title">Payment Status</div>
+                                    <div class="data-value-string status-badge-paid">PAID</div>
+                                </td>
+                                <td>
+                                    <div class="data-label-title">Issued Stamp</div>
+                                    <div class="data-value-string">{!formattedDateString}</div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                </div>
+            </apex:outputPanel>
+            
+            <apex:outputPanel rendered="{!NOT(isValidRecord)}">
+                <div style="text-align: center; padding: 50px; border: 1px dashed #ef4444; border-radius: 12px; margin-top: 40px;">
+                    <h2 style="color: #ef4444; margin: 0 0 10px 0;">⚠️ Document Context Tracing Error</h2>
+                    <p style="color: #64748b; font-size: 15px; margin: 0;">No active database registration record parameter found.</p>
+                </div>
+            </apex:outputPanel>
+        </body>
+    </html>
+</apex:page>

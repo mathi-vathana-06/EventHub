@@ -1,0 +1,98 @@
+<apex:page controller="EventBookingEngine" sidebar="false" showHeader="false" docType="html-5.0" id="loginPage">
+    <head>
+        <title>EventHub | Welcome Gateway</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <style>
+            :root {
+                --primary: #4f46e5;
+                --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+                --hero-gradient: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
+                --text-muted: #64748b;
+            }
+            html, body { margin: 0; padding: 0; width: 100%; height: 1
+            00vh; background: var(--hero-gradient); font-family: 'Segoe UI', system-ui, sans-serif; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+            
+            .gateway-container { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+            .gateway-card { background: #ffffff; padding: 45px; border-radius: 24px; width: 100%; max-width: 460px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); text-align: center; box-sizing: border-box; }
+            .gateway-card h1 { margin: 0 0 10px 0; font-size: 34px; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
+            .gateway-card p { margin: 0 0 30px     0; color: var(--text-muted); font-size: 14px; line-height: 1.5; }
+            
+            .form-group-gate { margin-bottom: 22px; text-align: left; width: 100%; box-sizing: border-box; }
+            .form-group-gate label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; color: var(--text-muted); letter-spacing: 0.5px; }
+            .gate-input { width: 100%; padding: 16px 20px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 16px; outline: none; box-sizing: border-box; height: 56px; line-height: 24px; }
+            .gate-input:focus { border-color: var(--primary); }
+            
+            .btn-gate-submit { background: var(--primary-gradient) !important; color: white !important; border: none !important; width: 100% !important; border-radius: 12px !important; font-weight: 700 !important; font-size: 16px !important; text-transform: uppercase; cursor: pointer; margin-top: 15px; display: block !important; height: 56px !important; line-height: 56px !important; box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3); text-align: center; box-sizing: border-box; }
+            
+            .gate-toggle-lbl { margin-top: 25px; font-size: 13px; color: var(--text-muted); text-decoration: none !important; }
+            .gate-toggle-lbl span { color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: none !important; display: inline-block; }
+            .gate-toggle-lbl span:hover { text-decoration: underline !important; }
+        </style>
+        <script type="text/javascript">
+            function toggleGateView(showRegister) {
+                if(showRegister) {
+                    document.getElementById('gateLoginBlock').style.display = 'none';
+                    document.getElementById('gateRegisterBlock').style.display = 'block';
+                } else {
+                    document.getElementById('gateLoginBlock').style.display = 'block';
+                    document.getElementById('gateRegisterBlock').style.display = 'none';
+                }
+            }
+            function suppressEnterKey(ev) { if (ev.keyCode == 13) { ev.preventDefault(); return false; } }
+        </script>
+    </head>
+    <body>
+        <apex:form id="loginPortalForm" onkeypress="return suppressEnterKey(event);">
+            <div class="gateway-container">
+                <div class="gateway-card">
+                    <h1>🔮 EventHub</h1>
+                    <apex:pageMessages id="gateErrorMessages"/>
+                    
+                    <div id="gateLoginBlock">
+                        <p>Please ent  er your registered profile credentials to unlock event spaces.</p>
+                        <div class="form-group-gate">
+                            <label>Registered Email Address</label>
+                            <apex:inputText value="{!loginEmail}" styleClass="gate-input" html-placeholder="E-Mail"/>
+                        </div>
+                        <div class="form-group-gate">
+                            <label>Portal Password</label>
+                            <apex:inputSecret value="{!loginPassword}" styleClass="gate-input" html-placeholder="Password"/>
+                        </div>
+                        <apex:commandButton value="Secure Portal Entry" action="{!loginUser}" styleClass="btn-gate-submit"/>
+                        <div class="gate-toggle-lbl">
+                            New to the registry directory? <span onclick="toggleGateView(true);">Create an Account</span>
+                        </div>
+                    </div>
+                    
+                    <div id="gateRegisterBlock" style="display: none;">
+                        <p>Register your parameters to generate confirmed event tickets.</p>
+                        <div class="form-group-gate">
+                            <label>First Name</label>
+                            <apex:inputText value="{!regFirstName}" styleClass="gate-input" html-placeholder="First Name"/>
+                        </div>
+                        <div class="form-group-gate">
+                            <label>Last Name</label>
+                            <apex:inputText value="{!regLastName}" styleClass="gate-input" html-placeholder="Last Name"/>
+                        </div>
+                        <div class="form-group-gate">
+                            <label>Email Address</label>
+                            <apex:inputText value="{!regEmail}" styleClass="gate-input" html-placeholder="E-Mail"/>
+                        </div>
+                        <div class="form-group-gate">
+                            <label>Mobile Phone</label>
+                            <apex:inputText value="{!regPhone}" styleClass="gate-input" html-placeholder="+91 XXXXX XXXXX"/>
+                        </div>
+                        <div class="form-group-gate">
+                            <label>Set Portal Password</label>
+                            <apex:inputSecret value="{!regPassword}" styleClass="gate-input" html-placeholder="Password"/>
+                        </div>
+                        <apex:commandButton value="Commit New Profile" action="{!registerUser}" styleClass="btn-gate-submit"/>
+                        <div class="gate-toggle-lbl">
+                            Already listed? <span onclick="toggleGateView(false);">Back to Login</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </apex:form>
+    </body>
+</apex:page>

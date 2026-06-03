@@ -1,0 +1,203 @@
+<apex:page controller="EventCatalogController" sidebar="false" showHeader="false" docType="html-5.0" id="catalogPage">
+    <head>
+        <title>EventHub | Browse Events</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <style>
+            :root {
+                --primary: #4f46e5;
+                --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+                --hero-gradient: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
+                --bg-canvas: #f8fafc;
+                --bg-card: #ffffff;
+                --bg-input: #f1f5f9;
+                --text-main: #0f172a;
+                --text-muted: #64748b;
+                --border-line: #cbd5e1;
+            }
+            
+            html, body { margin: 0; padding: 0; width: 100%; min-height: 100vh; background: var(--bg-canvas); color: var(--text-main); font-family: 'Segoe UI', system-ui, sans-serif; box-sizing: border-box; }
+            *, *:before, *:after { box-sizing: inherit; }
+            .page-container { max-width: 1200px; margin: 0 auto; width: 100%; padding: 0 24px; box-sizing: border-box; }
+            
+            .navbar-outer { background: var(--bg-card); border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 1000; width: 100%; }
+            .navbar-inner { max-width: 1200px; margin: 0 auto; padding: 15px 24px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
+            .brand { font-size: 24px; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+            .nav-menu { display: flex; gap: 35px; align-items: center; }
+            .nav-item { text-decoration: none; color: var(--text-muted); font-weight: 600; font-size: 15px; transition: color 0.15s; }
+            .nav-item:hover, .nav-item.active { color: var(--primary); }
+            
+            .auth-buttons { display: flex; gap: 15px; align-items: center; }
+            .user-profile-badge { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text-main); font-size: 14px; background: #f1f5f9; padding: 8px 18px; border-radius: 99px; border: 1px solid #e2e8f0; height: 40px; box-sizing: border-box; cursor: pointer; }
+            .btn-login-badge { background: var(--primary-gradient); color: white !important; font-weight: 700; font-size: 14px; padding: 10px 24px; border-radius: 99px; text-decoration: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); transition: opacity 0.2s; }
+            .btn-login-badge:hover { opacity: 0.9; }
+
+            .catalog-layout { display: grid; grid-template-columns: 290px 1fr; gap: 35px; padding: 40px 0; box-sizing: border-box; align-items: start; }
+            .filter-sidebar { background: var(--bg-card); border-radius: 16px; border: 1px solid #e2e8f0; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); box-sizing: border-box; }
+            .filter-title { font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 25px; color: var(--text-main); display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+            .filter-section { padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+            .filter-section:last-of-type { border-bottom: none; margin-bottom: 10px; padding-bottom: 10px; }
+            .filter-section h4 { margin: 0 0 14px 0; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+            
+            .custom-checkbox-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; cursor: pointer; font-size: 14px; color: var(--text-main); font-weight: 600; user-select: none; text-align: left; }
+            .custom-checkbox-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); margin: 0; cursor: pointer; }
+            
+            .btn-apply-filters { background: var(--primary-gradient) !important; color: white !important; border: none !important; width: 100%; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; display: block; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); text-align: center; margin-top: 15px; }
+
+            .listings-pane { display: flex; flex-direction: column; gap: 20px; }
+            .pane-header-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0; margin-bottom: 10px; }
+            .counter-text-lbl { font-size: 15px; color: var(--text-muted); font-weight: 600; }
+            
+            .horizontal-event-card { background: var(--bg-card); border-radius: 16px; border: 1px solid #e2e8f0; display: flex; width: 100%; min-height: 140px; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; box-sizing: border-box; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); }
+            .horizontal-event-card:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+            
+            /* Clean full-bleed horizontal thumbnail template */
+            .horizontal-card-thumbnail { width: 140px; min-width: 140px; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; border-right: 1px solid #e2e8f0; }
+            
+            .horizontal-event-card-body { display: flex; flex-direction: row; justify-content: space-between; align-items: center; flex-grow: 1; padding: 25px; box-sizing: border-box; gap: 20px; }
+            .card-details-left-block { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+            .card-details-left-block h3 { margin: 0; font-size: 20px; font-weight: 800; color: var(--text-main); letter-spacing: -0.4px; }
+            .card-details-meta-row { font-size: 14px; color: var(--text-muted); font-weight: 600; display: flex; flex-wrap: wrap; gap: 20px; }
+            .card-tag-pill-container { display: flex; gap: 8px; margin-top: 4px; }
+            .category-pill-tag { background: #f1f5f9; color: var(--text-muted); font-size: 11px; padding: 5px 12px; border-radius: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+            .status-pill-tag { background: #dcfce7; color: #15803d; font-size: 11px; padding: 5px 12px; border-radius: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(21,128,61,0.1); }
+            .card-pricing-right-block { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; min-width: 120px; text-align: right; }
+            .price-tag-currency { font-size: 24px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
+            .seats-remaining-counter { font-size: 13px; color: var(--text-muted); font-weight: 700; margin-top: 4px; }
+        </style>
+        
+        <script type="text/javascript">
+            function suppressEnterKey(ev) { if (ev.keyCode == 13) { ev.preventDefault(); return false; } }
+            
+            function syncFiltersAndQuery() {
+                var categories = [];
+                if(document.getElementById('chkTech').checked) categories.push('Technology');
+                if(document.getElementById('chkBiz').checked) categories.push('Business');
+                if(document.getElementById('chkDesign').checked) categories.push('Design');
+                if(document.getElementById('chkWork').checked) categories.push('Workshop');
+                
+                var prices = [];
+                if(document.getElementById('chkFree').checked) prices.push('Free');
+                if(document.getElementById('chkPaid').checked) prices.push('Paid');
+                
+                var cities = [];
+                if(document.getElementById('chkChennai').checked) cities.push('Chennai');
+                if(document.getElementById('chkCalicut').checked) cities.push('Calicut');
+                if(document.getElementById('chkCoimbatore').checked) cities.push('Coimbatore');
+                if(document.getElementById('chkBlr').checked) prices.push('Bengaluru');
+                
+                document.querySelector('[id$="hiddenCatsInput"]').value = categories.join(',');
+                document.querySelector('[id$="hiddenPricesInput"]').value = prices.join(',');
+                document.querySelector('[id$="hiddenCitiesInput"]').value = cities.join(',');
+                
+                fireCatalogFilterApex();
+            }
+        </script>
+    </head>
+    <body>
+        <apex:form id="catalogPortalForm" onkeypress="return suppressEnterKey(event);">
+            
+            <apex:inputHidden value="{!serializedCategoriesPassed}" id="hiddenCatsInput"/>
+            <apex:inputHidden value="{!serializedPricesPassed}" id="hiddenPricesInput"/>
+            <apex:inputHidden value="{!serializedCitiesPassed}" id="hiddenCitiesInput"/>
+            
+            <apex:actionFunction name="fireCatalogFilterApex" action="{!processAndExecuteFilters}" reRender="listingsDynamicWrapperBlock"/>
+            
+            <div class="navbar-outer">
+                <div class="navbar-inner">
+                    <a href="/EventHub/apex/EventCatalog?contactId={!loggedInContact.Id}" class="brand">🔮 EventHub</a>
+                    <div class="nav-menu">
+                        <a href="/EventHub/apex/EventCatalog?contactId={!loggedInContact.Id}" class="nav-item active">Browse Events</a>
+                    </div>
+                    <div class="auth-buttons">
+                        <apex:outputPanel rendered="{!isLoggedIn}">
+                            <div class="user-profile-badge">
+                                <span>{!loggedInContact.FirstName} {!loggedInContact.LastName}</span>
+                            </div>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!NOT(isLoggedIn)}">
+                            <a href="/EventHub/apex/EventLogin" class="btn-login-badge">Portal Login</a>
+                        </apex:outputPanel>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-container">
+                <div class="catalog-layout">
+                    
+                    <div class="filter-sidebar">
+                        <div class="filter-title">🎛️ Filter Canvas</div>
+                        <div class="filter-section">
+                            <h4>Event Category</h4>
+                            <div class="checkbox-group-wrapper">
+                                <label class="custom-checkbox-row"><input type="checkbox" id="chkTech"/> Technology</label>
+                                <label class="custom-checkbox-row"><input type="checkbox" id="chkBiz"/> Business</label>
+                                <label class="custom-checkbox-row"><input type="checkbox" id="chkDesign"/> Design</label>
+                                <label class="custom-checkbox-row"><input type="checkbox" id="chkWork"/> Workshop</label>
+                            </div>
+                        </div>
+                        <div class="filter-section">
+                            <h4>Price Point</h4>
+                            <div class="checkbox-group-wrapper">
+                                <label class="custom-checkbox-row"><input type="checkbox" id="chkFree"/> Free Passes Only</label>
+                                <label class="custom-checkbox-row"><input type="checkbox" id="chkPaid"/> Premium Paid Only</label>
+                            </div>
+                        </div>
+                        <div class="filter-section">
+                            <h4>City Location</h4>
+                            <div class="checkbox-group-wrapper">
+                                <label class="custom-checkbox-row"><input type="checkbox" id="chkChennai"/> Chennai Campus</label>
+                                <label class="custom-checkbox-row"><input type="checkbox" id="chkCalicut"/> NIT Calicut</label>
+                                <label class="custom-checkbox-row"><input type="checkbox" id="chkCoimbatore"/> Coimbatore</label>
+                                <label class="custom-checkbox-row"><input type="checkbox" id="chkBlr"/> Bengaluru Hub</label>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-apply-filters" onclick="syncFiltersAndQuery();">
+                            Apply Workspace Filters
+                        </button>
+                    </div>
+                    
+                    <div class="listings-pane">
+                        <apex:outputPanel id="listingsDynamicWrapperBlock" style="width:100%;">
+                            <div class="pane-header-row">
+                                <span class="counter-text-lbl">Showing {!totalRecordsFound} upcoming events matching criteria</span>
+                            </div>
+                            
+                            <div style="display:flex; flex-direction:column; gap:20px; width:100%; margin-top:15px;">
+                                <apex:repeat value="{!openEvents}" var="ev">
+                                    
+                                    <div class="horizontal-event-card" onclick="window.location.href='/EventHub/apex/EventDetail?id={!ev.Id}&contactId={!loggedInContact.Id}';">
+                                        
+                                        <div class="horizontal-card-thumbnail" style="background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.2)), url('{!BLANKVALUE(ev.Banner_URL__c, "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600")}');">
+                                        </div>
+                                        
+                                        <div class="horizontal-event-card-body">
+                                            <div class="card-details-left-block">
+                                                <h3>{!ev.Name}</h3>
+                                                <div class="card-details-meta-row">
+                                                    <span>📅&nbsp; <apex:outputText value="{0,date,EEE, MMM dd, yyyy}"><apex:param value="{!ev.Start_Date__c}"/></apex:outputText></span>
+                                                    <span>📍&nbsp; {!ev.Venue__c}</span>
+                                                </div>
+                                                <div class="card-tag-pill-container">
+                                                    <span class="category-pill-tag">{!BLANKVALUE(ev.Category__c, 'General')}</span>
+                                                    <span class="status-pill-tag">Open Pass</span>
+                                                </div>
+                                            </div>
+                                            <div class="card-pricing-right-block">
+                                                <span class="price-tag-currency">
+                                                    <apex:outputText value="₹{0,number,##,###}" rendered="{!and(not(isblank(ev.Registration_Fee__c)), ev.Registration_Fee__c > 0)}"><apex:param value="{!ev.Registration_Fee__c}"/></apex:outputText>
+                                                    <apex:outputText value="Free" rendered="{!or(isblank(ev.Registration_Fee__c), ev.Registration_Fee__c == 0)}"/>
+                                                </span>
+                                                <span class="seats-remaining-counter">{!BLANKVALUE(TEXT(ev.Seats_Remaining__c), '0')} seats available</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </apex:repeat>
+                            </div>
+                        </apex:outputPanel>
+                    </div>
+                    
+                </div>
+            </div>
+        </apex:form>
+    </body>
+</apex:page>

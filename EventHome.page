@@ -1,0 +1,168 @@
+<apex:page controller="EventBookingEngine" sidebar="false" showHeader="false" docType="html-5.0" id="entirePage">
+    <head>
+        <title>EventHub | Portal Dashboard</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <style>
+            :root {
+                --primary: #4f46e5;
+                --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+                --hero-gradient: linear-gradient(135deg, #0f0c20 0%, #15103c 45%, #2d124d 100%);
+                --bg-light: #f8fafc;
+                --text-dark: #0f172a;
+                --text-muted: #64748b;
+                --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 16px -6px rgba(0, 0, 0, 0.03);
+            }
+            
+            html, body { margin: 0; padding: 0; width: 100%; min-height: 100vh; background: #ffffff; color: var(--text-dark); font-family: 'Segoe UI', system-ui, sans-serif; box-sizing: border-box; }
+            *, *:before, *:after { box-sizing: inherit; }
+            
+            .page-container { max-width: 1200px; margin: 0 auto; width: 100%; padding: 0 24px; box-sizing: border-box; }
+            
+            .gateway-container { position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; background: var(--hero-gradient); display: flex; align-items: center; justify-content: center; z-index: 99999; margin: 0; padding: 20px; }
+            .gateway-card { background: #ffffff; padding: 45px; border-radius: 24px; width: 100%; max-width: 460px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); text-align: center; }
+            .btn-gate-fallback { background: var(--primary-gradient) !important; color: white !important; border: none !important; width: 100%; height: 56px; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; text-transform: uppercase; margin-top: 20px; display: block; line-height: 56px; text-decoration: none; text-align: center; }
+
+            .navbar-outer { background: #ffffff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 1000; width: 100%; }
+            .navbar-inner { max-width: 1200px; margin: 0 auto; padding: 15px 24px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
+            .brand { font-size: 24px; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+            .nav-menu { display: flex; gap: 35px; align-items: center; }
+            .nav-item { text-decoration: none; color: var(--text-muted); font-weight: 600; font-size: 15px; }
+            .nav-item:hover, .nav-item.active { color: var(--primary); }
+            
+            .auth-buttons { display: flex; gap: 15px; align-items: center; }
+            .profile-navigation-link { text-decoration: none !important; display: inline-block; color: inherit !important; }
+            .user-profile-badge { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text-dark); font-size: 14px; background: #f1f5f9; padding: 8px 18px; border-radius: 99px; border: 1px solid #e2e8f0; height: 40px; box-sizing: border-box; cursor: pointer; transition: background 0.2s, border-color 0.2s; }
+            .user-profile-badge:hover { background: #e2e8f0; border-color: var(--primary); }
+            .btn-logout { background: #fee2e2 !important; color: #ef4444 !important; border: 1px solid #fecaca !important; padding: 0 20px; height: 40px; border-radius: 99px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; box-sizing: border-box; }
+            
+            .hero-outer { background: var(--hero-gradient); position: relative; overflow: hidden; width: 100%; min-height: 340px; box-sizing: border-box; }
+            .hero-outer::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: linear-gradient(rgba(79, 70, 229, 0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(79, 70, 229, 0.12) 1px, transparent 1px); background-size: 32px 32px; background-position: center center; mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0)); -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0)); pointer-events: none; z-index: 1; }
+            .hero-outer::after { content: ''; position: absolute; top: 50%; left: 60%; transform: translate(-50%, -50%); width: 700px; height: 350px; background: radial-gradient(circle, rgba(124, 58, 237, 0.25) 0%, transparent 75%); filter: blur(60px); pointer-events: none; z-index: 2; }
+
+            .hero-left-illustration-pane { position: absolute; top: 0; left: 0; bottom: 0; width: 340px; height: 100%; z-index: 3; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+            .hero-illustration-img { width: 100%; height: 100%; object-fit: contain; border: none !important; margin: 0 !important; padding: 0 !important; }
+            
+            .hero-inner { position: relative; z-index: 4; max-width: 1200px; margin: 0 auto; padding: 75px 24px 75px 380px; box-sizing: border-box; }
+            .hero-right-content { width: 100%; text-align: left; color: white; }
+            .hero-right-content h1 { font-size: 46px; font-weight: 800; margin: 0 0 14px 0; letter-spacing: -0.8px; line-height: 1.2; }
+            .hero-right-content p { font-size: 18px; color: #cbd5e1; margin: 0 0 35px 0; font-weight: 500; }
+            
+            .search-container { max-width: 650px; background: rgba(255, 255, 255, 0.07); padding: 8px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.15); display: flex; backdrop-filter: blur(12px); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+            .search-input { flex: 1; background: transparent; border: none; padding: 12px 20px; color: white; font-size: 16px; outline: none; min-width: 0; }
+            .search-input::placeholder { color: #94a3b8; }
+            .btn-search-trigger { color: #1e1b4b !important; background: #ffffff !important; border: none !important; font-weight: 700 !important; font-size: 15px !important; border-radius: 12px !important; padding: 0 28px !important; cursor: pointer !important; box-shadow: 0 4px 12px rgba(255,255,255,0.15); }
+            
+            .main-content { padding: 50px 0; box-sizing: border-box; width: 100%; }
+            .section-header { font-size: 26px; font-weight: 800; margin-bottom: 30px; text-align: left; color: var(--text-dark); }
+            
+            .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; width: 100%; box-sizing: border-box; }
+            .event-card-panel { background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-card); border: 1px solid #e2e8f0; text-align: left; display: flex; flex-direction: column; width: 100%; box-sizing: border-box; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+            .event-card-panel:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+            
+            .card-banner { height: 190px; background-size: cover; background-position: center; display: flex; align-items: flex-start; padding: 15px; box-sizing: border-box; width: 100%; }
+            .status-badge { padding: 6px 14px; border-radius: 30px; font-size: 12px; font-weight: 700; background: #dcfce7; color: #15803d; border: 1px solid rgba(21,128,61,0.15); }
+            
+            .card-body { padding: 24px; display: flex; flex-direction: column; flex-grow: 1; box-sizing: border-box; width: 100%; background: #ffffff; }
+            .card-body h3 { margin: 0 0 10px 0; font-size: 20px; font-weight: 800; color: var(--text-dark); line-height: 1.4; }
+            .card-meta { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; display: flex; gap: 15px; font-weight: 600; }
+            
+            .card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 16px; margin-top: auto; width: 100%; box-sizing: border-box; }
+            .price-tag { font-size: 20px; font-weight: 800; color: var(--primary); }
+            
+            @media (max-width: 900px) {
+                .hero-outer { min-height: auto; }
+                .hero-left-illustration-pane { position: relative; width: 100%; height: 200px; }
+                .hero-inner { padding: 40px 24px; }
+            }
+        </style>
+        <script type="text/javascript">
+            function suppressEnterKey(ev) { if (ev.keyCode == 13) { ev.preventDefault(); return false; } }
+            window.onpageshow = function(event) { if (event.persisted) { window.location.reload(); } };
+        </script>
+    </head>
+    <body>
+        <apex:form id="masterPortalForm" onkeypress="return suppressEnterKey(event);">
+            
+            <apex:outputPanel rendered="{!NOT(isLoggedIn)}">
+                <div class="gateway-container">
+                    <div class="gateway-card">
+                        <h1>🔮 EventHub</h1>
+                        <p style="color:var(--text-muted); font-size:15px; margin:0 0 20px 0;">Please log into your account to access this dashboard view.</p>
+                        <a href="/EventHub/apex/EventLogin" class="btn-gate-fallback">Go to Login Page</a>
+                    </div>
+                </div>
+            </apex:outputPanel>
+
+            <apex:outputPanel id="storefrontDashboard" rendered="{!isLoggedIn}">
+                
+                <div class="navbar-outer">
+                    <div class="navbar-inner">
+                        <a href="/EventHub/apex/EventHome?contactId={!loggedInContact.Id}" class="brand">🔮 EventHub</a>
+                        <div class="nav-menu">
+                            <a href="/EventHub/apex/EventHome?contactId={!loggedInContact.Id}" class="nav-item active">Home Storefront</a>
+                            <a href="/EventHub/apex/EventCatalog?contactId={!loggedInContact.Id}" class="nav-item">Browse Events</a>
+                        </div>
+                        
+                        <div class="auth-buttons">
+                            <apex:commandLink action="{!goToMyAccountPage}" styleClass="profile-navigation-link">
+                                <div class="user-profile-badge">
+                                    <span>👤 {!loggedInContact.FirstName} {!loggedInContact.LastName}</span>
+                                </div>
+                            </apex:commandLink>
+                            <apex:commandButton value="Sign Out" action="{!logout}" styleClass="btn-logout"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-outer">
+                    <div class="hero-left-illustration-pane">
+                        <img src="{!URLFOR($Resource.EventHubHeroLogo_new)}" class="hero-illustration-img" alt="EventHub Student Banner Art" />
+                    </div>
+                    
+                    <div class="hero-inner">
+                        <div class="hero-right-content">
+                            <h1>Find events you'll love</h1>
+                            <p>Browse hundreds of tech, business, and creative events — register in minutes</p>
+                            <div class="search-container">
+                                <apex:inputText value="{!homeSearchKey}" styleClass="search-input" html-placeholder="Search events, venues, topics..."/>
+                                <apex:commandButton value="Search" action="{!handleHomeSearch}" reRender="eventsGridWrapper" styleClass="btn-search-trigger"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-container">
+                    <div class="main-content">
+                        <h2 class="section-header">Featured upcoming events</h2>
+                        
+                        <apex:outputPanel id="eventsGridWrapper" layout="block" style="width: 100%;">
+                            <div class="event-grid">
+                                <apex:repeat value="{!openEvents}" var="ev">
+                                    <div class="event-card-panel" onclick="window.location.href='/EventHub/apex/EventDetail?id={!ev.Id}&contactId={!loggedInContact.Id}';">
+                                        <div class="card-banner" style="background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.4)), url('{!BLANKVALUE(ev.Banner_URL__c, "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600")}');">
+                                            <span class="status-badge">Open ({!BLANKVALUE(TEXT(ev.Seats_Remaining__c), '150')} left)</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <h3>{!ev.Name}</h3>
+                                            <div class="card-meta">
+                                                <span>📅&nbsp; <apex:outputText value="{0,date,MMM dd}"><apex:param value="{!ev.Start_Date__c}"/></apex:outputText></span>
+                                                <span>📍&nbsp; {!ev.Venue__c}</span>
+                                            </div>
+                                            <div class="card-footer">
+                                                <span style="font-size: 13px; color: var(--text-muted); font-weight:600;">Entry Fee</span>
+                                                <span class="price-tag">
+                                                    <apex:outputText value="₹{0,number,##,###}" rendered="{!and(not(isblank(ev.Registration_Fee__c)), ev.Registration_Fee__c > 0)}"><apex:param value="{!ev.Registration_Fee__c}"/></apex:outputText>
+                                                    <apex:outputText value="Free" rendered="{!or(isblank(ev.Registration_Fee__c), ev.Registration_Fee__c == 0)}"/>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </apex:repeat>
+                            </div>
+                        </apex:outputPanel>
+                    </div>
+                </div>
+            </apex:outputPanel>
+        </apex:form>
+    </body>
+</apex:page>

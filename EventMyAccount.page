@@ -1,0 +1,131 @@
+<apex:page controller="EventBookingEngine" sidebar="false" showHeader="false" docType="html-5.0" id="myAccountPage">
+    <head>
+        <title>EventHub | My Account Dashboard</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <style>
+            :root {
+                --primary: #4f46e5;
+                --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+                --hero-gradient: linear-gradient(135deg, #0f0c20 0%, #15103c 45%, #2d124d 100%);
+                --bg-light: #f8fafc;
+                --text-dark: #0f172a;
+                --text-muted: #64748b;
+                --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            }
+            body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-light); margin: 0; padding: 0; color: var(--text-dark); }
+            
+            .navbar { background: #ffffff; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 1000; }
+            .brand { font-size: 24px; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+            .nav-menu { display: flex; gap: 35px; }
+            .nav-item { text-decoration: none; color: var(--text-muted); font-weight: 600; font-size: 15px; transition: color 0.2s; }
+            .nav-item:hover, .nav-item.active { color: var(--primary); }
+            
+            .dashboard-container { max-width: 1200px; margin: 40px auto; padding: 0 24px; display: flex; gap: 40px; box-sizing: border-box; }
+            .sidebar-card { background: #ffffff; width: 320px; padding: 35px; border-radius: 24px; box-shadow: var(--shadow-card); border: 1px solid #e2e8f0; text-align: center; height: fit-content; box-sizing: border-box; }
+            .avatar-circle { width: 90px; height: 90px; background: var(--primary-gradient); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; margin-bottom: 20px; font-size: 28px; font-weight: 700; text-transform: uppercase; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.2); }
+            .sidebar-card h2 { font-size: 22px; font-weight: 800; margin: 0 0 5px 0; letter-spacing: -0.5px; }
+            .badge { font-size: 13px; color: var(--primary); font-weight: 700; background: #e0e7ff; padding: 6px 16px; border-radius: 20px; display: inline-block; margin-bottom: 30px; border: 1px solid rgba(79, 70, 229, 0.1); }
+            
+            .info-group { text-align: left; margin-bottom: 20px; border-top: 1px solid #f1f5f9; padding-top: 15px; }
+            .info-group label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 5px; text-transform: uppercase; }
+            .info-group p { margin: 0; font-size: 15px; font-weight: 600; color: var(--text-dark); word-break: break-all; }
+            
+            .main-panel { flex: 1; background: #ffffff; padding: 40px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-card); box-sizing: border-box; }
+            .tabs { display: flex; gap: 30px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 30px; }
+            .tab-item { font-size: 16px; font-weight: 700; color: var(--text-muted); text-decoration: none; cursor: pointer; position: relative; }
+            .tab-item.active { color: var(--primary); }
+            .tab-item.active::after { content: ''; position: absolute; bottom: -17px; left: 0; right: 0; height: 3px; background: var(--primary-gradient); border-radius: 99px; }
+            
+            .ticket-card { border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #ffffff; transition: border-color 0.2s, box-shadow 0.2s; }
+            .ticket-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+            .ticket-info { text-align: left; }
+            .ticket-info h4 { margin: 0 0 8px 0; font-size: 18px; font-weight: 800; color: var(--text-dark); letter-spacing: -0.3px; }
+            .ticket-info p { margin: 4px 0; font-size: 14px; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+            .ticket-ref-id { color: var(--primary); font-size: 12px; margin-top: 8px; font-weight: 700; text-transform: uppercase; display: block; letter-spacing: 0.5px; }
+            
+            .status-badge-confirmed { background: #dcfce7; color: #15803d; padding: 6px 14px; border-radius: 30px; font-size: 12px; font-weight: 700; border: 1px solid rgba(21,128,61,0.15); letter-spacing: 0.5px; text-transform: uppercase; }
+            .btn-view { border: 1px solid #cbd5e1; background: #ffffff; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s, color 0.15s; color: var(--text-dark); }
+            .btn-view:hover { background: var(--bg-light); color: var(--primary); border-color: var(--primary); }
+            
+            .empty-state-card { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+            .empty-state-card h3 { font-size: 18px; color: var(--text-dark); margin-bottom: 8px; }
+
+            @media (max-width: 900px) {
+                .dashboard-container { flex-direction: column; }
+                .sidebar-card { width: 100%; }
+                .ticket-card { flex-direction: column; align-items: flex-start; gap: 20px; }
+                .ticket-card div:last-child { width: 100%; justify-content: space-between; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="navbar">
+            <a href="/EventHub/apex/EventHome?contactId={!loggedInContact.Id}" class="brand">🔮 EventHub</a>
+            <div class="nav-menu">
+                <a href="/EventHub/apex/EventHome?contactId={!loggedInContact.Id}" class="nav-item">Home Storefront</a>
+                <a href="/EventHub/apex/EventCatalog?contactId={!loggedInContact.Id}" class="nav-item">Browse Events</a>
+                <a href="#" class="nav-item active">My Account</a>
+            </div>
+        </div>
+
+        <div class="dashboard-container">
+            <div class="sidebar-card">
+                <div class="avatar-circle">
+                    {!IF(NOT(ISBLANK(loggedInContact.FirstName)), LEFT(loggedInContact.FirstName, 1), 'M')}{!IF(NOT(ISBLANK(loggedInContact.LastName)), LEFT(loggedInContact.LastName, 1), 'V')}
+                </div>
+                <h2>{!loggedInContact.FirstName} {!loggedInContact.LastName}</h2>
+                <span class="badge">Verified Student Account</span>
+
+                <div class="info-group">
+                    <label>Email Address Account</label>
+                    <p>{!loggedInContact.Email}</p>
+                </div>
+                <div class="info-group">
+                    <label>Contact Registry Mobile</label>
+                    <p>{!BLANKVALUE(loggedInContact.Phone, 'Not Provided')}</p>
+                </div>
+                <div class="info-group">
+                    <label>Institution Affiliation</label>
+                    <p>{!BLANKVALUE(loggedInContact.Department, 'Computer Science &amp; Eng')}</p>
+                </div>
+            </div>
+
+            <div class="main-panel">
+                <div class="tabs">
+                    <span class="tab-item active">My Bookings</span>
+                </div>
+                
+                <apex:form id="accountDashboardForm">
+                    <apex:outputPanel id="emptyStateWrapper" rendered="{!OR(ISBLANK(myRegisteredEvents), myRegisteredEvents.size == 0)}">
+                        <div class="empty-state-card">
+                            <h3>No Active Passes Found</h3>
+                            <p>You haven't registered for any events yet. Head over to the catalog to grab a ticket!</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel id="dynamicPassesWrapper" rendered="{!AND(NOT(ISBLANK(myRegisteredEvents)), myRegisteredEvents.size > 0)}">
+                        <apex:repeat value="{!myRegisteredEvents}" var="reg">
+                            <div class="ticket-card">
+                                <div class="ticket-info">
+                                    <h4>{!reg.Event__r.Name}</h4>
+                                    <p>
+                                        📅&nbsp;<apex:outputText value="{0,date,MMM dd, yyyy}"><apex:param value="{!reg.Event__r.Start_Date__c}"/></apex:outputText> 
+                                        • 📍&nbsp;{!reg.Event__r.Venue__c}
+                                    </p>
+                                    <span class="ticket-ref-id">Reference ID: {!reg.Name}</span>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:15px;">
+                                    <span class="status-badge-confirmed">{!BLANKVALUE(reg.Status__c, 'APPROVED')}</span>
+                                    
+                                    <button type="button" class="btn-view" onclick="window.open('/EventHub/apex/TicketPDF?regId={!reg.Id}&contactId={!loggedInContact.Id}', '_blank');">
+                                        View Pass
+                                    </button>
+                                </div>
+                            </div>
+                        </apex:repeat>
+                    </apex:outputPanel>
+                </apex:form>
+            </div>
+        </div>
+    </body>
+</apex:page>
