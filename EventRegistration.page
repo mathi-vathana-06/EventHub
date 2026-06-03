@@ -1,0 +1,146 @@
+<apex:page controller="EventRegistrationController" sidebar="false" showHeader="false" docType="html-5.0" id="checkoutPage">
+    <head>
+        <title>EventHub | Confirm Registration</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <style>
+            :root {
+                --primary: #4f46e5;
+                --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+                --hero-gradient: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
+                --bg-canvas: #f8fafc;
+                --bg-card: #ffffff;
+                --text-main: #0f172a;
+                --text-muted: #64748b;
+                --border-line: #cbd5e1;
+                --emerald: #10b981;
+            }
+            
+            html, body { margin: 0; padding: 0; width: 100%; min-height: 100vh; background: var(--bg-canvas); color: var(--text-main); font-family: 'Segoe UI', system-ui, sans-serif; box-sizing: border-box; }
+            *, *:before, *:after { box-sizing: inherit; }
+            .page-container { max-width: 800px; margin: 0 auto; width: 100%; padding: 40px 24px; box-sizing: border-box; }
+            
+            .navbar-outer { background: var(--bg-card); border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 1000; width: 100%; }
+            .navbar-inner { max-width: 1200px; margin: 0 auto; padding: 15px 24px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
+            .brand { font-size: 24px; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+            
+            .checkout-card { background: var(--bg-card); border-radius: 20px; border: 1px solid #e2e8f0; padding: 40px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); text-align: left; margin-top: 20px; }
+            .section-title { font-size: 22px; font-weight: 800; margin-bottom: 25px; color: var(--text-main); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; }
+            
+            .event-preview-banner { background: #f8fafc; border: 1px dashed var(--border-line); border-radius: 12px; padding: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+            .banner-details h3 { margin: 0 0 6px 0; font-size: 18px; font-weight: 800; color: var(--text-main); }
+            .banner-meta { font-size: 14px; color: var(--text-muted); font-weight: 600; display: flex; gap: 15px; }
+            
+            .price-badge-pill { font-size: 18px; font-weight: 800; color: var(--primary); background: rgba(79, 70, 229, 0.08); padding: 8px 16px; border-radius: 8px; }
+            
+            .form-grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+            .input-box-wrapper { display: flex; flex-direction: column; gap: 8px; }
+            .input-box-wrapper.full-width { grid-column: span 2; }
+            .input-box-wrapper label { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+            
+            /* Enhanced selector handles to force layout sizing properties onto active Visualforce components */
+            .form-control-input, select, input[type="text"], input[type="number"] { 
+                width: 100% !important; height: 48px !important; background: #ffffff !important; 
+                border: 2px solid #cbd5e1 !important; padding: 0 16px !important; border-radius: 8px !important; 
+                font-size: 15px !important; font-weight: 600 !important; outline: none !important; color: var(--text-main) !important;
+                transition: border-color 0.15s; box-sizing: border-box !important; display: block !important;
+            }
+            .form-control-input:focus { border-color: var(--primary) !important; }
+            
+            .summary-footer-panel { background: #f1f5f9; border-radius: 12px; padding: 25px; display: flex; justify-content: space-between; align-items: center; margin-top: 30px; }
+            .total-cost-label span { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; }
+            .total-cost-label h2 { margin: 4px 0 0 0; font-size: 28px; font-weight: 900; color: var(--text-main); }
+            
+            .btn-confirm-checkout { 
+                background: var(--primary-gradient) !important; color: #ffffff !important; border: none !important; 
+                padding: 18px 44px !important; border-radius: 12px !important; font-weight: 800 !important; 
+                font-size: 16px !important; cursor: pointer !important; text-transform: uppercase !important; 
+                letter-spacing: 0.8px !important; box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3) !important; 
+                transition: all 0.2s ease-in-out !important; height: auto !important; display: inline-block !important; line-height: 1 !important;
+            }
+            .btn-confirm-checkout:hover { transform: translateY(-2px) !important; box-shadow: 0 8px 25px rgba(79, 70, 229, 0.45) !important; }
+            
+            .gateway-container { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--hero-gradient); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px; }
+            .gateway-card { background: #ffffff; padding: 45px; border-radius: 24px; width: 100%; max-width: 460px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); text-align: center; }
+            .btn-gate-fallback { background: var(--primary-gradient) !important; color: white !important; border: none !important; width: 100%; height: 56px; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; text-transform: uppercase; margin-top: 20px; display: block; line-height: 56px; text-decoration: none; text-align: center; }
+        </style>
+    </head>
+    <body>
+        <apex:form id="checkoutFormBlock">
+            
+            <apex:outputPanel rendered="{!NOT(isFormValid)}">
+                <div class="gateway-container">
+                    <div class="gateway-card">
+                        <h1 style="color:var(--text-main); margin:0 0 10px 0; font-size:32px; font-weight:800;">🔮 EventHub</h1>
+                        <p style="color:var(--text-muted); font-size:15px; margin:0 0 20px 0;">Checkout routing session token error. Return to home view.</p>
+                        <a href="/EventHub/apex/EventLogin" class="btn-gate-fallback">Return to Login Gateway</a>
+                    </div>
+                </div>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!isFormValid}">
+                <div class="navbar-outer">
+                    <div class="navbar-inner">
+                        <a href="/EventHub/apex/EventHome?contactId={!currentContact.Id}" class="brand">🔮 EventHub</a>
+                    </div>
+                </div>
+                
+                <div class="page-container">
+                    <apex:pageMessages id="checkoutNotificationToasts"/>
+                    
+                    <div class="checkout-card">
+                        <div class="section-title">🎟️ Secure Ticket Checkout</div>
+                        
+                        <div class="event-preview-banner">
+                            <div class="banner-details">
+                                <h3>{!targetEvent.Name}</h3>
+                                <div class="banner-meta">
+                                    <span>📍 {!targetEvent.Venue__c}</span>
+                                    <span>🔥 {!IF(NOT(ISBLANK(targetEvent.Seats_Remaining__c)), TEXT(targetEvent.Seats_Remaining__c), '120')} Seats Left</span>
+                                </div>
+                            </div>
+                            <div class="price-badge-pill">
+                                {!IF(AND(NOT(ISBLANK(targetEvent.Registration_Fee__c)), targetEvent.Registration_Fee__c > 0), '₹' + TEXT(targetEvent.Registration_Fee__c), 'Free Pass')}
+                            </div>
+                        </div>
+                        
+                        <div class="form-grid-layout">
+                            <div class="input-box-wrapper">
+                                <label>Registrant Full Name</label>
+                                <apex:inputText value="{!pendingRegistration.Registrant_Name__c}" styleClass="form-control-input" disabled="true"/>
+                            </div>
+                            <div class="input-box-wrapper">
+                                <label>Account Email Destination</label>
+                                <apex:inputText value="{!pendingRegistration.Email__c}" styleClass="form-control-input" disabled="true"/>
+                            </div>
+                            <div class="input-box-wrapper">
+                                <label>Contact Phone Number</label>
+                                <apex:inputText value="{!pendingRegistration.Phone__c}" styleClass="form-control-input"/>
+                            </div>
+                            
+                            <div class="input-box-wrapper">
+                                <label>Desired Seat Pass Volume</label>
+                                <apex:inputText value="{!seatVolumeProperty}" styleClass="form-control-input" html-type="number" html-min="1" html-max="10">
+                                    <apex:actionSupport event="onchange" action="{!recalculateTicketPricing}" reRender="summaryCostFooterWrapperBlock,checkoutNotificationToasts"/>
+                                </apex:inputText>
+                            </div>
+                        </div>
+                        
+                        <apex:outputPanel id="summaryCostFooterWrapperBlock" layout="block">
+                            <div class="summary-footer-panel">
+                                <div class="total-cost-label">
+                                    <span>Order Subtotal Balance</span>
+                                    <h2>
+                                        <apex:outputText value="₹{0,number,##,###.00}" rendered="{!totalCalculatedCost > 0}"><apex:param value="{!totalCalculatedCost}"/></apex:outputText>
+                                        <apex:outputText value="₹0.00 (Free Pass)" rendered="{!totalCalculatedCost == 0}"/>
+                                    </h2>
+                                </div>
+                                <apex:commandButton value="Confirm & Issue Ticket" action="{!executeTicketBooking}" styleClass="btn-confirm-checkout" reRender="checkoutFormBlock"/>
+                            </div>
+                        </apex:outputPanel>
+                        
+                    </div>
+                </div>
+            </apex:outputPanel>
+        </apex:form>
+    </body>
+</apex:page>

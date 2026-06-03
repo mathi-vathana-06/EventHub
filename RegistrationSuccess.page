@@ -1,0 +1,138 @@
+<apex:page controller="RegistrationSuccessController" sidebar="false" showHeader="false" docType="html-5.0" id="successPage">
+    <head>
+        <title>EventHub | Registration Confirmed</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <style>
+            :root {
+                --primary: #4f46e5;
+                --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+                --bg-canvas: #f8fafc;
+                --bg-card: #ffffff;
+                --text-main: #0f172a;
+                --text-muted: #64748b;
+                --emerald: #10b981;
+                --emerald-bg: rgba(16, 185, 129, 0.08);
+                --dark-btn-bg: #2d2d2d;
+                --dark-btn-hover: #1a1a1a;
+            }
+            
+            html, body { margin: 0; padding: 0; width: 100%; min-height: 100vh; background: var(--bg-canvas); color: var(--text-main); font-family: 'Segoe UI', system-ui, sans-serif; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
+            *, *:before, *:after { box-sizing: inherit; }
+            .success-container { max-width: 650px; width: 100%; padding: 30px 20px; box-sizing: border-box; }
+            
+            .success-card { background: var(--bg-card); border-radius: 24px; border: 1px solid #e2e8f0; padding: 45px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); text-align: center; }
+            .success-badge-icon { width: 76px; height: 76px; background: var(--emerald-bg); color: var(--emerald); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto; }
+            
+            h1 { margin: 0 0 10px 0; font-size: 30px; font-weight: 800; color: var(--text-main); letter-spacing: -0.6px; }
+            .lead-text { color: var(--text-muted); font-size: 16px; margin: 0 0 35px 0; font-weight: 600; }
+            
+            .ticket-summary-box { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 18px; padding: 30px; text-align: left; margin-bottom: 35px; position: relative; }
+            .ticket-header { font-size: 12px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
+            
+            .event-title-h2 { margin: 0 0 8px 0; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.4px; }
+            .event-venue-meta { font-size: 14px; color: var(--text-muted); font-weight: 600; display: block; }
+            
+            .event-timeline-display { font-size: 12.5px; color: #475569; font-weight: 700; margin: 12px 0 22px 0; text-transform: uppercase; letter-spacing: 0.3px; }
+            
+            .details-data-grid { border-top: 1px solid #e2e8f0; padding-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+            .grid-item-lbl { display: flex; flex-direction: column; gap: 5px; }
+            .grid-item-lbl span { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+            .grid-item-lbl strong { font-size: 15px; font-weight: 700; color: var(--text-main); }
+            
+            .button-action-row { display: flex; gap: 12px; justify-content: center; width: 100%; margin-top: 10px; }
+            
+            .btn-dark-action { 
+                background: var(--dark-btn-bg) !important; color: #ffffff !important; border: 1px solid #444444 !important;
+                padding: 14px 24px !important; border-radius: 10px !important; font-weight: 700 !important; font-size: 14px !important;
+                cursor: pointer; text-transform: none; display: flex; align-items: center; gap: 8px; transition: background 0.15s; height: auto !important; text-decoration: none;
+            }
+            .btn-dark-action:hover { background: var(--dark-btn-hover) !important; }
+            
+            .btn-purple-primary { 
+                background: var(--primary-gradient) !important; color: white !important; border: none !important;
+                padding: 14px 28px !important; border-radius: 10px !important; font-weight: 700 !important; font-size: 14px !important;
+                cursor: pointer; text-decoration: none; display: inline-block; transition: transform 0.15s; height: auto !important;
+            }
+            .btn-purple-primary:hover { transform: translateY(-1px); }
+        </style>
+        
+        <script type="text/javascript">
+            function openPdfTicket() {
+                var regId = '{!confirmedRegistration.Id}';
+                // 🚀 FIXED: Appended /EventHub to prevent the browser window popup from crashing into the login gate
+                window.open('/EventHub/apex/TicketPDF?regId=' + regId, '_blank');
+            }
+        </script>
+    </head>
+    <body>
+        <div class="success-container">
+            <apex:outputPanel rendered="{!isValidRecord}" layout="block" styleClass="success-card">
+                <div class="success-badge-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" style="width:34px; height:34px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                </div>
+                
+                <h1>Registration Complete!</h1>
+                <p class="lead-text">Your structural entry seats are officially locked in.</p>
+                
+                <div class="ticket-summary-box">
+                    <div class="ticket-header">
+                        <span>OFFICIAL ENTRY CONFIRMATION PASS</span>
+                        <span>#{!BLANKVALUE(confirmedRegistration.Ticket_Number__c, confirmedRegistration.Name)}</span>
+                    </div>
+                    
+                    <h2 class="event-title-h2">{!confirmedRegistration.Event__r.Name}</h2>
+                    <span class="event-venue-meta">📍 {!confirmedRegistration.Event__r.Venue__c}</span>
+                    
+                    <div class="event-timeline-display">
+                        📅 START:&nbsp;
+                        <apex:outputText value="{0,date,EEE, MMM dd, yyyy}">
+                            <apex:param value="{!confirmedRegistration.Event__r.Start_Date__c}"/>
+                        </apex:outputText>
+                        &nbsp;&nbsp;|&nbsp;&nbsp;
+                        🔚 END:&nbsp;
+                        <apex:outputText value="{0,date,EEE, MMM dd, yyyy}">
+                            <apex:param value="{!confirmedRegistration.Event__r.End_Date__c}"/>
+                        </apex:outputText>
+                    </div>
+                    
+                    <div class="details-data-grid">
+                        <div class="grid-item-lbl">
+                            <span>Primary Attendee</span>
+                            <strong>{!confirmedRegistration.Registrant_Name__c}</strong>
+                        </div>
+                        <div class="grid-item-lbl">
+                            <span>Allocated Volume</span>
+                            <strong>{!FLOOR(confirmedRegistration.Number_of_Seats__c)} Passes Issued</strong>
+                        </div>
+                        <div class="grid-item-lbl">
+                            <span>Payment Status</span>
+                            <strong style="color: #10b981;">PAID</strong>
+                        </div>
+                        <div class="grid-item-lbl">
+                            <span>Issued Stamp</span>
+                            <strong>{!formattedDateString}</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="button-action-row">
+                    <button type="button" class="btn-dark-action" onclick="openPdfTicket();">
+                        📥 Download PDF
+                    </button>
+                    
+                    <a href="/EventHub/apex/EventCatalog?contactId={!confirmedRegistration.Registrant_Profile__c}" class="btn-purple-primary">
+                        Browse more events →
+                    </a>
+                </div>
+            </apex:outputPanel>
+            
+            <apex:outputPanel rendered="{!NOT(isValidRecord)}" layout="block" styleClass="success-card">
+                <h1 style="color:#ef4444;">⚠️ Session Core Error</h1>
+                <p class="lead-text">No active database registration token parameter found.</p>
+                <a href="/EventHub/apex/EventLogin" class="btn-purple-primary">Exit to Gateway</a>
+            </apex:outputPanel>
+        </div>
+    </body>
+</apex:page>

@@ -1,0 +1,246 @@
+<apex:page controller="EventDetailController" sidebar="false" showHeader="false" docType="html-5.0" id="detailPage">
+    <head>
+        <title>EventHub | {!IF(isValidSession, targetEvent.Name, 'Event Details')}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <style>
+            :root {
+                --primary: #4f46e5;
+                --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+                --hero-gradient: linear-gradient(135deg, #0f0c20 0%, #15103c 45%, #2d124d 100%);
+                --bg-canvas: #f8fafc;
+                --bg-card: #ffffff;
+                --text-main: #0f172a;
+                --text-muted: #64748b;
+                --border-line: #e2e8f0;
+            }
+            
+            html, body { margin: 0; padding: 0; width: 100%; min-height: 100vh; background: var(--bg-canvas); color: var(--text-main); font-family: 'Segoe UI', system-ui, sans-serif; box-sizing: border-box; }
+            *, *:before, *:after { box-sizing: inherit; }
+            
+            .page-container { max-width: 900px; margin: 0 auto; width: 100%; padding: 40px 24px; box-sizing: border-box; }
+            
+            .navbar-outer { background: var(--bg-card); border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 1000; width: 100%; }
+            .navbar-inner { max-width: 1200px; margin: 0 auto; padding: 15px 24px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
+            .brand { font-size: 24px; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+            
+            .detail-header-hero-outer { 
+                width: 100%;
+                background: var(--hero-gradient);
+                position: relative;
+                overflow: hidden;
+                box-sizing: border-box; 
+                margin: 0;
+                padding: 50px 0;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            
+            .detail-header-hero-outer::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background-image: 
+                    linear-gradient(rgba(79, 70, 229, 0.12) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(79, 70, 229, 0.12) 1px, transparent 1px);
+                background-size: 32px 32px;
+                background-position: center center;
+                mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0));
+                -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0));
+                pointer-events: none;
+                z-index: 1;
+            }
+            
+            .detail-header-hero-outer::after {
+                content: '';
+                position: absolute;
+                top: 50%; left: 50%;
+                transform: translate(-50%, -50%);
+                width: 700px;
+                height: 100%;
+                background: radial-gradient(circle, rgba(124, 58, 237, 0.22) 0%, transparent 75%);
+                filter: blur(50px);
+                pointer-events: none;
+                z-index: 2;
+            }
+
+            .detail-header-hero-inner {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 24px;
+                position: relative;
+                z-index: 5;
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                gap: 45px;
+                box-sizing: border-box;
+            }
+            
+            .detail-hero-left-logo {
+                flex: 0 0 220px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            .detail-logo-img {
+                width: 100%;
+                max-width: 220px;
+                height: 220px;
+                object-fit: contain;
+                border-radius: 16px;
+                background: transparent !important;
+                mix-blend-mode: screen;
+                filter: brightness(1.1) contrast(1.05) drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+                pointer-events: none;
+            }
+            
+            .detail-hero-right-content {
+                flex: 1;
+                text-align: left;
+            }
+            
+            .detail-hero-right-content h1 { margin: 0 0 15px 0; font-size: 40px; font-weight: 800; letter-spacing: -0.8px; line-height: 1.2; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+            .hero-meta-row { display: flex; flex-wrap: wrap; gap: 25px; font-size: 15px; color: #cbd5e1; font-weight: 600; }
+            
+            .tab-navigation-bar { display: flex; border-bottom: 2px solid #e2e8f0; gap: 10px; margin-bottom: 30px; }
+            .nav-tab-button { background: none; border: none; padding: 14px 24px; font-size: 15px; font-weight: 700; color: var(--text-muted); cursor: pointer; position: relative; transition: color 0.2s; outline: none; }
+            .nav-tab-button:hover { color: var(--primary); }
+            .nav-tab-button.active-tab { color: var(--primary); }
+            .nav-tab-button.active-tab::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 3px; background: var(--primary-gradient); border-radius: 999px; }
+            
+            .tab-content-pane { background: var(--bg-card); border-radius: 16px; border: 1px solid #e2e8f0; padding: 35px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); display: none; text-align: left; min-height: 180px; }
+            .tab-content-pane.active-pane { display: block; animation: fadeInEffect 0.3s ease; }
+            
+            .pane-heading-block { font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 16px; display: block; }
+            .pane-body-paragraphs { font-size: 16.5px !important; line-height: 1.8 !important; color: #334155 !important; display: block; }
+            
+            .agenda-showcase-section { background: var(--bg-card); border-radius: 16px; border: 1px solid #e2e8f0; padding: 35px; margin-top: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); text-align: left; }
+            .agenda-section-title { font-size: 20px; font-weight: 800; color: var(--text-main); margin-bottom: 18px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; }
+            .agenda-matrix-content-wrapper { font-size: 16px !important; line-height: 1.8 !important; color: #334155 !important; }
+            
+            .agenda-matrix-content-wrapper ul { padding-left: 20px; margin-top: 8px; }
+            .agenda-matrix-content-wrapper li { margin-bottom: 8px; font-weight: 500; }
+            
+            .metrics-footer-sticky-card { background: var(--bg-card); border: 1px solid #e2e8f0; border-radius: 20px; padding: 30px; margin-top: 35px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
+            .metrics-footer-sticky-card .sticky-pricing-left { text-align: left; }
+            .metrics-footer-sticky-card .sticky-pricing-left span { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; }
+            .metrics-footer-sticky-card .sticky-pricing-left h2 { margin: 4px 0 0 0; font-size: 32px; font-weight: 900; color: var(--primary); }
+            
+            .btn-action-register { background: var(--primary-gradient) !important; color: white !important; border: none !important; padding: 18px 40px; border-radius: 12px; font-weight: 700; font-size: 16px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3); transition: transform 0.15s; text-decoration: none; display: inline-block; line-height: 1; text-align: center; }
+            .btn-action-register:hover { transform: translateY(-1px); }
+            
+            @media (max-width: 768px) {
+                .detail-header-hero-inner { flex-direction: column; text-align: center; gap: 25px; }
+                .detail-hero-right-content { text-align: center; }
+                .hero-meta-row { justify-content: center; }
+            }
+
+            @keyframes fadeInEffect {
+                from { opacity: 0; transform: translateY(4px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .gateway-container { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--hero-gradient); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 20px; }
+            .gateway-card { background: #ffffff; padding: 45px; border-radius: 24px; width: 100%; max-width: 460px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); text-align: center; }
+        </style>
+        
+        <script type="text/javascript">
+            function toggleActivePane(tabElement, targetPaneId) {
+                var tabs = document.getElementsByClassName('nav-tab-button');
+                for (var i = 0; i < tabs.length; i++) { tabs[i].classList.remove('active-tab'); }
+                var panes = document.getElementsByClassName('tab-content-pane');
+                for (var j = 0; j < panes.length; j++) { panes[j].classList.remove('active-pane'); }
+                tabElement.classList.add('active-tab');
+                document.getElementById(targetPaneId).classList.add('active-pane');
+            }
+        </script>
+    </head>
+    <body>
+        <apex:outputPanel rendered="{!NOT(isValidSession)}">
+            <div class="gateway-container">
+                <div class="gateway-card">
+                    <h1 style="color:var(--text-main); margin:0 0 10px 0; font-size:32px; font-weight:800;">🔮 EventHub</h1>
+                    <p style="color:var(--text-muted); font-size:15px; margin:0 0 20px 0;">Routing trace session error.</p>
+                </div>
+            </div>
+        </apex:outputPanel>
+
+        <apex:outputPanel rendered="{!isValidSession}">
+            <div class="navbar-outer">
+                <div class="navbar-inner">
+                    <a href="/EventHub/apex/EventCatalog?contactId={!currentContact.Id}" class="brand">🔮 EventHub</a>
+                </div>
+            </div>
+            
+            <div class="detail-header-hero-outer">
+                <div class="detail-header-hero-inner">
+                    
+                    <div class="detail-hero-left-logo">
+                        <img src="{!BLANKVALUE(targetEvent.Banner_URL__c, 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=300&amp;q=80')}" class="detail-logo-img" alt="Event Brand Logo" />
+                    </div>
+                    
+                    <div class="detail-hero-right-content">
+                        <h1>{!targetEvent.Name}</h1>
+                        <div class="hero-meta-row">
+                            <span>📅&nbsp; <apex:outputText value="{0,date,EEEE, MMMM dd, yyyy}"><apex:param value="{!targetEvent.Start_Date__c}"/></apex:outputText></span>
+                            <span>📍&nbsp; {!targetEvent.Venue__c}</span>
+                            <span>🔥&nbsp; {!BLANKVALUE(TEXT(targetEvent.Seats_Remaining__c), '0')} Remaining Seats</span>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            
+            <div class="page-container">
+                
+                <div class="tab-navigation-bar">
+                    <button type="button" class="nav-tab-button active-tab" onclick="toggleActivePane(this, 'paneAboutUs');">About Us</button>
+                    <button type="button" class="nav-tab-button" onclick="toggleActivePane(this, 'paneCertification');">Certification Details</button>
+                    <button type="button" class="nav-tab-button" onclick="toggleActivePane(this, 'paneOutcomes');">Learning Outcomes</button>
+                </div>
+                
+                <div id="paneAboutUs" class="tab-content-pane active-pane">
+                    <div class="pane-heading-block">About the Event</div>
+                    <div class="pane-body-paragraphs">
+                        <apex:outputField value="{!targetEvent.About_Us__c}"/>
+                    </div>
+                </div>
+                
+                <div id="paneCertification" class="tab-content-pane">
+                    <div class="pane-heading-block">Official Credentials &amp; Certifications</div>
+                    <div class="pane-body-paragraphs">
+                        <apex:outputField value="{!targetEvent.Certification_Details__c}"/>
+                    </div>
+                </div>
+                
+                <div id="paneOutcomes" class="tab-content-pane">
+                    <div class="pane-heading-block">What You Will Take Away</div>
+                    <div class="pane-body-paragraphs">
+                        <apex:outputField value="{!targetEvent.Learning_Outcomes__c}"/>
+                    </div>
+                </div>
+                
+                <div class="agenda-showcase-section">
+                    <div class="agenda-section-title">📅 Daily Agenda Matrix</div>
+                    <div class="agenda-matrix-content-wrapper">
+                        <apex:outputField value="{!targetEvent.Daily_Agenda_Matrix__c}" rendered="{!NOT(ISBLANK(targetEvent.Daily_Agenda_Matrix__c))}"/>
+                        <apex:outputText value="Schedule layout timeline is currently being finalized for this session track." rendered="{!ISBLANK(targetEvent.Daily_Agenda_Matrix__c)}"/>
+                    </div>
+                </div>
+                
+                <div class="metrics-footer-sticky-card">
+                    <div class="sticky-pricing-left">
+                        <span>Admission Ticket Value</span>
+                        <h2>
+                            <apex:outputText value="₹{0,number,##,###.00}" rendered="{!and(not(isblank(targetEvent.Registration_Fee__c)), targetEvent.Registration_Fee__c > 0)}"><apex:param value="{!targetEvent.Registration_Fee__c}"/></apex:outputText>
+                            <apex:outputText value="Free Pass" rendered="{!or(isblank(targetEvent.Registration_Fee__c), targetEvent.Registration_Fee__c == 0)}"/>
+                        </h2>
+                    </div>
+                    
+                    <a href="/EventHub/apex/EventRegistration?id={!targetEvent.Id}&contactId={!currentContact.Id}" class="btn-action-register">
+                        Register for Event
+                    </a>
+                </div>
+            </div>
+        </apex:outputPanel>
+    </body>
+</apex:page>
